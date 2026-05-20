@@ -1,32 +1,45 @@
 <?php
 
-use App\Http\Controllers\ProfileController; // No olvides esta línea al principio
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
 
-// Rutas de perfil (Añade esto)
-Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+*/
+
+// 1. Ruta principal (Página de bienvenida)
+Route::get('/', function () {
+    return view('welcome');
 });
 
-// Rutas que requieren autenticación y verificación
+// 2. Ruta de salida rápida (Logout Manual)
+// Corregido: Se asegura de que solo usuarios autenticados puedan intentar salir
+Route::get('/logout-manual', function (Request $request) {
+    Auth::guard('web')->logout();
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+    return redirect('/');
+})->name('logout.manual');
+
+// 3. Rutas protegidas por Autenticación y Verificación
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Dashboard - Solo admin y editor
+    // DASHBOARD: Protegido por roles
+    // IMPORTANTE: Asegúrate de que el middleware 'role' esté registrado en bootstrap/app.php
     Route::get('/dashboard', function () {
         return view('dashboard');
     })->middleware('role:admin,editor')->name('dashboard');
 
-    // Crear posts - Solo admin y editor
-    Route::post('/posts', function () {
-        return 'Post creado';
-    })->middleware('role:admin,editor')->name('posts.store');
-
-    // Eliminar posts - Solo admin
-    Route::delete('/posts/{id}', function ($id) {
-        return "Post {$id} eliminado";
-    })->middleware('role:admin')->name('posts.destroy');
+    // PERFIL: Agrupamos para mayor limpieza
+    Route::controller(ProfileController::class)->group(function () {
+        Route::get('/profile', 'edit')->name('profile.edit');
+        Route::patch('/profile', 'update')->name('profile.update');
+        Route::delete('/profile', 'destroy')->name('profile.destroy');
+    });
 });
 
 require __DIR__.'/auth.php';
