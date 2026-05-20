@@ -10,18 +10,22 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('user_roles', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+{
+    Schema::create('categories', function (Blueprint $table) {
+        $table->id();
+
+        $table->string('name'); // Nombre de la categoría
+        $table->string('slug')->unique(); // URL amigable (ej: desarrollo-web)
+
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_roles');
+        Schema::dropIfExists('categories');
     }
 };

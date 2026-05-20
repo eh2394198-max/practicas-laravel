@@ -10,18 +10,22 @@ return new class extends Migration
      * Run the migrations.
      */
     public function up(): void
-    {
-        Schema::create('roles', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+{
+    Schema::create('tags', function (Blueprint $table) {
+        $table->id();
+
+        $table->string('name');
+        $table->string('slug')->unique();
+
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        Schema::dropIfExists('roles');
+        Schema::dropIfExists('tags');
     }
 };
