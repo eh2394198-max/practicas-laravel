@@ -10,6 +10,7 @@ class Attachment extends Model
 {
     use HasFactory;
 
+    // Asegúrate de que estos nombres coincidan EXACTAMENTE con tu migración
     protected $fillable = [
         'post_id',
         'filename',
@@ -20,35 +21,51 @@ class Attachment extends Model
     ];
 
     /**
+     * MEJORA DE SEGURIDAD: Limpieza automática de archivos.
+     * Si borras el registro de la DB, el archivo físico se borra del Storage.
+     */
+    protected static function booted()
+    {
+        static::deleted(function ($attachment) {
+            if (Storage::disk('public')->exists($attachment->path)) {
+                Storage::disk('public')->delete($attachment->path);
+            }
+        });
+    }
+
+    /**
      * Accesor para URL pública.
+     * Uso: $attachment->url
      */
     public function getUrlAttribute()
     {
-        return Storage::url($this->path);
+        return $this->path ? Storage::url($this->path) : null;
     }
 
     /**
-     * Accesor para tamaño legible.
+     * Accesor para tamaño legible (Optimizado).
      */
     public function getReadableSizeAttribute()
     {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        $bytes = max($this->size, 0);
-        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
-        $pow = min($pow, count($units) - 1);
-
-        return round($bytes / pow(1024, $pow), 2) . ' ' . $units[$pow];
+        if (!$this->size) return '0 B';
+        
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $i = floor(log($this->size, 1024));
+        
+        return round($this->size / pow(1024, $i), 2) . ' ' . $units[$i];
     }
 
     /**
-     * PASO 1 (P4): Identificar si el adjunto es una imagen.
-     * Permite decidir si mostrar una miniatura o un icono.
+     * Identificar si el adjunto es una imagen.
      */
     public function isImage()
     {
         return str_starts_with($this->mime_type, 'image/');
     }
 
+    /**
+     * Relación inversa con Post.
+     */
     public function post()
     {
         return $this->belongsTo(Post::class);

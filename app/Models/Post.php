@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Auditable; // 1. IMPORTAMOS EL TRAIT (Paso 3 de la guía)
 
 class Post extends Model
 {
     use HasFactory;
+    use Auditable; // 2. USAMOS EL TRAIT PARA ACTIVAR LA AUDITORÍA
 
-    // Campos habilitados para asignación masiva (Mass Assignment)
+    // Campos habilitados para asignación masiva
     protected $fillable = [
         'name', 
         'slug', 
@@ -22,7 +24,6 @@ class Post extends Model
 
     /**
      * RELACIÓN: Muchos a Muchos
-     * Un post tiene muchas etiquetas (Tags).
      */
     public function tags() 
     {
@@ -31,8 +32,6 @@ class Post extends Model
 
     /**
      * RELACIÓN: Uno a Muchos
-     * Un post tiene muchos comentarios. 
-     * (ESTO CORRIGE EL ERROR "NULL" EN TUS EVIDENCIAS)
      */
     public function comments()
     {
@@ -40,8 +39,7 @@ class Post extends Model
     }
 
     /**
-     * RELACIÓN: Uno a Muchos
-     * Un post puede tener muchos archivos adjuntos (Práctica 3).
+     * RELACIÓN: Uno a Muchos (Archivos Adjuntos - Práctica 3)
      */
     public function attachments()
     {
@@ -49,8 +47,7 @@ class Post extends Model
     }
 
     /**
-     * RELACIÓN: Uno a Muchos (Inversa)
-     * Un post pertenece a un usuario (Autor).
+     * RELACIÓN: Uno a Muchos (Inversa) - Autor
      */
     public function user() 
     {
@@ -58,8 +55,7 @@ class Post extends Model
     }
 
     /**
-     * RELACIÓN: Uno a Muchos (Inversa)
-     * Un post pertenece a una categoría.
+     * RELACIÓN: Uno a Muchos (Inversa) - Categoría
      */
     public function category() 
     {
