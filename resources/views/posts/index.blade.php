@@ -4,9 +4,18 @@
         <div class="mb-10 text-center">
             <h1 class="text-4xl font-extrabold text-gray-900 tracking-tight">Nuestro Blog</h1>
             <p class="mt-3 text-lg text-gray-500">Explora las últimas noticias y tutoriales de desarrollo.</p>
+            
+            {{-- 1. BOTÓN NUEVO POST: Solo visible para el Admin --}}
+            @role('admin')
+                <div class="mt-6">
+                    <a href="{{ route('admin.posts.create') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 active:bg-blue-900 focus:outline-none focus:border-blue-900 focus:ring ring-blue-300 disabled:opacity-25 transition ease-in-out duration-150">
+                        + Crear Nuevo Artículo
+                    </a>
+                </div>
+            @endrole
         </div>
 
-        {{-- Filtro de categoría / etiqueta --}}
+        {{-- Filtros de categoría/etiqueta existentes... --}}
         @isset($category)
             <div class="mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
                 <p class="text-blue-700 font-bold uppercase text-sm tracking-widest">
@@ -24,10 +33,27 @@
         @endisset
 
         <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-            
             @foreach ($posts as $post)
-                <article class="flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden">
+                <article class="flex flex-col bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-gray-100 overflow-hidden relative">
                     
+                    {{-- 2. BOTONES DE ACCIÓN RÁPIDA: Visibles para Admin y Editor --}}
+                    @hasanyrole('admin|editor')
+                        <div class="absolute top-2 right-2 flex gap-2 z-10">
+                            <a href="{{ route('admin.posts.edit', $post) }}" class="bg-yellow-400 text-white p-2 rounded-full shadow hover:bg-yellow-500 transition" title="Editar">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </a>
+                            
+                            @role('admin')
+                                <form action="{{ route('admin.posts.destroy', $post) }}" method="POST" onsubmit="return confirm('¿Borrar este post?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="bg-red-500 text-white p-2 rounded-full shadow hover:bg-red-600 transition" title="Eliminar">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    </button>
+                                </form>
+                            @endrole
+                        </div>
+                    @endhasanyrole
+
                     <div class="overflow-hidden">
                         <img class="w-full h-52 object-cover transition-transform duration-500 hover:scale-110" 
                              src="@if($post->image) {{ Storage::url($post->image->url) }} @else https://cdn.pixabay.com/photo/2016/11/19/14/00/code-1839406_1280.jpg @endif" 
@@ -66,7 +92,6 @@
                     </div>
                 </article>
             @endforeach
-
         </div>
 
         <div class="mt-12">

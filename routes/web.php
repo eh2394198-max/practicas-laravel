@@ -23,10 +23,16 @@ Route::get('tag/{tag}', [PostController::class, 'tag'])->name('posts.tag');
 // 3. RUTAS PROTEGIDAS POR AUTENTICACIÓN
 Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Dashboard con acceso para Admin y Editor
+    // CORRECCIÓN: Agregamos 'view' para que Ibarra no vea el error 403
     Route::get('/dashboard', function () {
         return view('dashboard');
-    })->middleware('role:admin,editor')->name('dashboard');
+    })->middleware('role:admin,editor,view')->name('dashboard');
+
+    // RUTAS DE GESTIÓN (CRUD): Solo Admin y Editor pueden entrar aquí
+    // Esto protege que un 'view' no pueda crear o editar aunque escriba la URL
+    Route::middleware('role:admin,editor')->group(function () {
+        Route::resource('posts', PostController::class)->except(['index', 'show']);
+    });
 
     // Rutas del perfil de usuario
     Route::controller(ProfileController::class)->group(function () {
