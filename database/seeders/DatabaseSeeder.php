@@ -2,40 +2,49 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use App\Models\Post;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        // Esto imprimirá un mensaje en tu terminal para confirmar que entró aquí
-        $this->command->info('--- ENTRANDO AL SEEDER PRINCIPAL ---');
-
-        $this->call([
-            CategorySeeder::class,
-            TagSeeder::class,
+        // 1. Crear usuario admin
+        $admin = \App\Models\User::factory()->create([
+            'name' => 'Admin User',
+            'email' => 'admin@example.com',
+            'password' => bcrypt('password123'),
         ]);
 
-        $this->command->info('--- CATEGORIAS Y TAGS LISTOS ---');
+        // 2. Asignar rol admin
+        $adminRole = \App\Models\Role::where('name', 'admin')->first();
+        $admin->roles()->attach($adminRole);
 
-        User::factory()->create([
-            'name' => 'Emmanuel',
-            'email' => 'emmanuel@gmail.com',
-        ]);
+        // 3. Crear más usuarios (10 adicionales)
+        $users = \App\Models\User::factory(10)->create();
 
-        User::factory(9)->create();
-        
-        $this->command->info('--- USUARIOS CREADOS ---');
-
-        Post::factory(50)->create()->each(function ($post) {
-            $post->tags()->attach([
-                rand(1, 2),
-                rand(3, 4)
-            ]);
+        // 4. Asignar rol editor a 5 usuarios aleatorios
+        $editorRole = \App\Models\Role::where('name', 'editor')->first();
+        $users->random(5)->each(function ($user) use ($editorRole) {
+            $user->roles()->attach($editorRole);
         });
 
-        $this->command->info('--- TODO TERMINÓ CON ÉXITO ---');
+        // 5. Crear categorías
+        $categories = \App\Models\Category::factory(5)->create();
+
+        // 6. Crear 50 posts con relaciones complejas
+        \App\Models\Post::factory(50)
+            ->recycle($users)       // Asigna autores de los usuarios creados
+            ->recycle($categories)  // Asigna categorías de las creadas
+            ->create()
+            ->each(function ($post) {
+                // Agregar 3 tags aleatorios por post
+                $tags = \App\Models\Tag::factory(3)->create();
+                $post->tags()->attach($tags);
+
+                // Agregar 5 comentarios por cada post
+                \App\Models\Comment::factory(5)
+                    ->for($post)
+                    ->create();
+            });
     }
 }

@@ -10,9 +10,6 @@ class Attachment extends Model
 {
     use HasFactory;
 
-    /**
-     * Campos que permiten asignación masiva.
-     */
     protected $fillable = [
         'post_id',
         'filename',
@@ -23,8 +20,7 @@ class Attachment extends Model
     ];
 
     /**
-     * MEJORA: Accesor para obtener la URL pública del archivo directamente.
-     * Esto facilita mostrar imágenes o enlaces de descarga en la vista.
+     * Accesor para URL pública.
      */
     public function getUrlAttribute()
     {
@@ -32,8 +28,7 @@ class Attachment extends Model
     }
 
     /**
-     * MEJORA: Accesor para formatear el tamaño del archivo de bytes a KB/MB.
-     * Útil para la evidencia de "Pruebas con diferentes archivos".
+     * Accesor para tamaño legible.
      */
     public function getReadableSizeAttribute()
     {
@@ -46,8 +41,14 @@ class Attachment extends Model
     }
 
     /**
-     * Relación Inversa: Un adjunto pertenece a un Post.
+     * PASO 1 (P4): Identificar si el adjunto es una imagen.
+     * Permite decidir si mostrar una miniatura o un icono.
      */
+    public function isImage()
+    {
+        return str_starts_with($this->mime_type, 'image/');
+    }
+
     public function post()
     {
         return $this->belongsTo(Post::class);

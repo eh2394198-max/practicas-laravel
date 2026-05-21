@@ -9,7 +9,7 @@ class Post extends Model
 {
     use HasFactory;
 
-    // Permitimos la asignación masiva de todos los campos necesarios
+    // Campos habilitados para asignación masiva (Mass Assignment)
     protected $fillable = [
         'name', 
         'slug', 
@@ -21,30 +21,48 @@ class Post extends Model
     ];
 
     /**
-     * PASO 3: Relación en Post (Práctica 3) [cite: 284]
-     * Un post puede tener muchos archivos adjuntos[cite: 286, 287].
-     * Esto corrige el error de "count() on null" en las vistas.
+     * RELACIÓN: Muchos a Muchos
+     * Un post tiene muchas etiquetas (Tags).
+     */
+    public function tags() 
+    {
+        return $this->belongsToMany(Tag::class); 
+    }
+
+    /**
+     * RELACIÓN: Uno a Muchos
+     * Un post tiene muchos comentarios. 
+     * (ESTO CORRIGE EL ERROR "NULL" EN TUS EVIDENCIAS)
+     */
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
+    /**
+     * RELACIÓN: Uno a Muchos
+     * Un post puede tener muchos archivos adjuntos (Práctica 3).
      */
     public function attachments()
     {
         return $this->hasMany(Attachment::class); 
     }
 
-    // EVIDENCIA 3: Relación Uno a Muchos (Inversa)
-    // Un post pertenece a un usuario (Autor) [cite: 164, 165]
-    public function user() {
+    /**
+     * RELACIÓN: Uno a Muchos (Inversa)
+     * Un post pertenece a un usuario (Autor).
+     */
+    public function user() 
+    {
         return $this->belongsTo(User::class); 
     }
 
-    // EVIDENCIA 3: Relación Uno a Muchos (Inversa)
-    // Un post pertenece a una categoría [cite: 162, 163]
-    public function category() {
+    /**
+     * RELACIÓN: Uno a Muchos (Inversa)
+     * Un post pertenece a una categoría.
+     */
+    public function category() 
+    {
         return $this->belongsTo(Category::class); 
-    }
-
-    // EVIDENCIA 3 (Extra): Relación Muchos a Muchos
-    // Un post puede tener muchas etiquetas [cite: 166, 167]
-    public function tags() {
-        return $this->belongsToMany(Tag::class); 
     }
 }

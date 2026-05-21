@@ -9,33 +9,55 @@ use Illuminate\Support\Facades\Storage;
 class FileService
 {
     /**
-     * Procesa y guarda un archivo adjunto[cite: 326].
+     * Procesa y guarda un archivo adjunto individual.
      */
     public function storeAttachment(UploadedFile $file, $postId)
     {
-        // Generar nombre único con uniqid() y tiempo [cite: 327, 328, 329]
+        // Generar nombre único
         $filename = uniqid() . '_' . time() . '.' . $file->getClientOriginalExtension();
         
-        // Guardar en la carpeta 'posts/' dentro del disco 'public' [cite: 331]
+        // Guardar en la carpeta 'posts/{id}' dentro del disco 'public'
         $path = $file->storeAs('posts/' . $postId, $filename, 'public');
 
-        // Registrar en la base de datos [cite: 332, 333]
+        // Registrar en la base de datos
         return Attachment::create([
-            'post_id'       => $postId, // [cite: 334]
-            'filename'      => $filename, // [cite: 335]
-            'original_name' => $file->getClientOriginalName(), // [cite: 336]
-            'mime_type'     => $file->getMimeType(), // [cite: 338]
-            'size'          => $file->getSize(), // [cite: 339]
-            'path'          => $path, // [cite: 342]
+            'post_id'       => $postId,
+            'filename'      => $filename,
+            'original_name' => $file->getClientOriginalName(),
+            'mime_type'     => $file->getMimeType(),
+            'size'          => $file->getSize(),
+            'path'          => $path,
         ]);
     }
 
     /**
-     * Elimina el archivo físico y el registro de la DB[cite: 345].
+     * PASO 2 (P4): Procesa múltiples archivos adjuntos.
+     * Útil para cuando el input de la vista tiene el atributo 'multiple'.
+     */
+    public function storeMultipleAttachments(array $files, $postId)
+    {
+        $attachments = [];
+        foreach ($files as $file) {
+            $attachments[] = $this->storeAttachment($file, $postId);
+        }
+        return $attachments;
+    }
+
+    /**
+     * Elimina un archivo físico individual y su registro en la DB.
      */
     public function deleteAttachment(Attachment $attachment)
     {
-        Storage::disk('public')->delete($attachment->path); // [cite: 346]
-        return $attachment->delete(); // [cite: 346]
+        Storage::disk('public')->delete($attachment->path);
+        return $attachment->delete();
+    }
+
+    /**
+     * PASO 3 (P4): Elimina físicamente todos los archivos de un post.
+     * Se usa al borrar un Post completo para evitar "archivos huérfanos".
+     */
+    public function deleteAllPostFiles($postId)
+    {
+        return Storage::disk('public')->deleteDirectory('posts/' . $postId);
     }
 }
