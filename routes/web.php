@@ -8,11 +8,11 @@ use Illuminate\Http\Request;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes - PRÁCTICA 2 (BLOG)
+| Web Routes - PRÁCTICA 3 (MANEJO DE ARCHIVOS)
 |--------------------------------------------------------------------------
 */
 
-// 1. RUTAS DE GESTIÓN (CRUD) - DEBEN IR ARRIBA PARA EVITAR EL 404
+// 1. RUTAS DE GESTIÓN (CRUD)
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard con acceso para todos los roles
@@ -20,10 +20,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('dashboard');
     })->middleware('role:admin,editor,view')->name('dashboard');
 
-    // Rutas protegidas para Admin y Editor
+    // Rutas protegidas para Admin y Editor (PRÁCTICA 3)
     Route::middleware('role:admin,editor')->group(function () {
-        // Al poner el resource aquí arriba, Laravel encontrará 'posts/create' antes que 'posts/{post}'
         Route::resource('posts', PostController::class)->except(['index', 'show']);
+        
+        // PASO 6: Ruta para eliminar archivos individuales 
+        Route::delete('attachments/{attachment}', [PostController::class, 'destroyAttachment'])->name('attachments.destroy');
     });
 
     // Perfil de usuario
@@ -39,7 +41,7 @@ Route::get('/', [PostController::class, 'index'])->name('posts.index');
 Route::get('category/{category}', [PostController::class, 'category'])->name('posts.category');
 Route::get('tag/{tag}', [PostController::class, 'tag'])->name('posts.tag');
 
-// 3. DETALLE DE POST - ESTA DEBE IR AL FINAL
+// 3. DETALLE DE POST
 Route::get('posts/{post}', [PostController::class, 'show'])->name('posts.show');
 
 // 4. LOGOUT MANUAL
